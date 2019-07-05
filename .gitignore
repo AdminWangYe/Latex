@@ -1,6 +1,7 @@
 # Compiled class file
 *.class
-
+# 项目中的 idea 配置不用上传到 git仓库中
+.idea/
 # Log file
 *.log
 
