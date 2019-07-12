@@ -1,3 +1,5 @@
+package latex;
+
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,12 +42,12 @@ public class LatexConvert {
 
 
     /**
-     * 文本中的实体 LaTeX 化，
+     * 文本中的实体 LaTeX 化，暴露接口给外界访问的入口
      *
      * @param str 待处理的文本
      * @return 返回处理后的文本
      */
-    private String getPattern(String str) {
+    public String getPattern(String str) {
         // 每次处理一个新的文本都需要将 map 集合里的数据清空
         keymap.clear();
         replaceMap.clear();
