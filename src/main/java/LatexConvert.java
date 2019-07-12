@@ -13,6 +13,8 @@ public class LatexConvert {
 
     // 保存替换后的字符串
     private Map<String, String> keymap = new LinkedHashMap<>();
+    // 将转LaTeX化的实体进行替换成 replaceLatex 集合中的字符
+    private Map<String, String> replaceMap = new LinkedHashMap<>();
     // 从替换的元素中任选一个进行替换
     private static Random random = new Random();
     // 匹配 LaTeX 公式，
@@ -45,6 +47,7 @@ public class LatexConvert {
     private String getPattern(String str) {
         // 每次处理一个新的文本都需要将 map 集合里的数据清空
         keymap.clear();
+        replaceMap.clear();
         Pattern pattern = Pattern.compile(ChinanesStr);
         String[] strs = pattern.split(str.trim());
         List<String> strset = new ArrayList<>(Arrays.asList(strs));
@@ -55,11 +58,53 @@ public class LatexConvert {
             dealStr(string);
         }
 
+        // 将已经使用的字符移除掉
+        List<String> stringList = replaceLatex;
+
         // 按照文本中的实体，替换首次匹配到的实体
         for (Map.Entry<String, String> entry : keymap.entrySet()) {
             str = str.replaceFirst(Pattern.quote(entry.getKey()), Matcher.quoteReplacement(entry.getValue()));
+            // 虽然按照首次匹配的正则进行替换，但是还会出现后面覆盖前面实体LaTeX化的内容，这时可以将已经 LaTeX化的实体利用其它字符进行替换。
+            str = replaceStr(str, stringList);
         }
 
+        str = replaceEndStr(str);
+
+        return str;
+    }
+
+    /**
+     * 将用其他字符替换的 LaTeX化的实体，进行还原，成原字符串
+     *
+     * @param str 需要替换的字符串
+     * @return 返回替换后的字符串
+     */
+    private String replaceEndStr(String str) {
+        for (Map.Entry<String, String> entry : replaceMap.entrySet()) {
+            str = str.replace(entry.getKey(), entry.getValue());
+        }
+        return str;
+    }
+
+    /**
+     * 将已经转成 LaTeX 的实体进行其他字符替代以免被覆盖
+     *
+     * @param str        需要处理的字符串
+     * @param stringList 保留关键字的集合
+     * @return
+     */
+    private String replaceStr(String str, List<String> stringList) {
+        String reg = "(\\$.*?\\$)";
+        Pattern pattern = Pattern.compile(reg);
+        Matcher matcher = pattern.matcher(str);
+        while (matcher.find()) {
+            // 从list 集合中取出一个字符进行替换。关键字
+            String key = stringList.get(random.nextInt(stringList.size()));
+            // 替换一个
+            str = str.replace(matcher.group(1), key);
+            stringList.remove(key);
+            replaceMap.put(key, matcher.group(1));
+        }
         return str;
     }
 
@@ -91,34 +136,44 @@ public class LatexConvert {
                 // 去掉字符串的前后空格的影响
                 str = str.trim();
                 // 如果包含字符串包含$，说明该字符串是LaTeX格式，不需要进行处理
-                String newStr = str;
-                if (!str.contains("$") && !str.equals("")) {
-                    if (str.contains("=")) {
-                        newStr = "$" + str + "$";
-                    } else if (str.contains("△")) {
-                        newStr = str.replaceAll("△([A-Z]+)", "\\$$1\\$");
-                    } else if (str.contains("∠")) {
-                        newStr = str.replaceAll("∠([A-z]+)", "\\$$1\\$");
-                    } else if (!patternNum(str)) {
-                        newStr = "$" + str + "$";
-                    }
-                }
-                keymap.put(str, newStr);
+//                String newStr = newStrReplace(str);
+//                keymap.put(str, newStr);
+                dealStr(str);
             }
         } else {
-            String replaceStr = string;
-            if (!string.contains("$") && !string.equals("")) {
-                replaceStr = "$" + string + "$";
-            }
+            String replaceStr = newStrReplace(string);
             keymap.put(string, replaceStr);
         }
 
     }
 
+    /**
+     * 单个字符串处理，是否添加 $,也就是添加匹配规则。
+     *
+     * @param str 需要处理的字符串
+     * @return 返回添加 $ 后的字符串，也就是返回 LaTeX 化的实体。
+     */
+    private String newStrReplace(String str) {
+        if (!str.contains("$") && !str.equals("")) {
+            if (str.contains("=")) {
+                str = "$" + str + "$";
+            } else if (str.contains("△") || str.contains("∥")) {
+                str = str.replaceAll("[△∥]?([A-Z']+)", "\\$$1\\$");
+            } else if (str.contains("∠")) {
+                str = str.replaceAll("∠([A-z]+)", "\\$$1\\$");
+            } else if (str.contains("⊥")) {
+                str = str.replaceAll("([A-Z]+)", "\\$$1\\$");
+            } else if (!patternNum(str)) {
+                str = "$" + str + "$";
+            }
+        }
+        return str;
+    }
+
     public static void main(String[] args) {
 
         LatexConvert latexConvert = new LatexConvert();
-        String str = "如图,矩形 $OABC$ 的两边 $OA$ 、 $OC$ 分别在x轴、y轴的正半轴上, $OA=4$ , $OC=2$ , $G$ 为矩形对角线的交点,经过点 $G$ 的双曲线 $y=\\frac{k}{x}$ 与 $BC$ 相交于点 $M$ ,则 $CM:MB=$";
+        String str = "四边形ABCD的对角线AC,BD交于点O,已知O是AC的中点,AE=CF,DF∥BE, 证明:△BOE≌△DOF, 若OD=1/2AC,则四边形ABCD是什么特殊四边形,请证明你的结论";
         System.out.println("原字符串：" + str);
         System.out.println(latexConvert.getPattern(str));
 
