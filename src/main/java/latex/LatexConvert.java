@@ -1,3 +1,5 @@
+package latex;
+
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,26 +28,19 @@ public class LatexConvert {
     private static final String ChinanesStr = "[\\u4e00-\\u9fa5_]+:?";
 
 
-    // LaTeX 用下面的词进行替换，最后再转换
-    private static final List<String> replaceLatex = new ArrayList<String>(Arrays.asList(
-            "魑魅", "魍魉", "狰讙", "驳鯥", "蠃鱼", "孰湖", "穷奇", "伏羲琴", "冉遗鱼", "鵸鵌", "东皇钟", "昊天塔", "异兽狡", "玃如", "毕方",
-            "豪彘", "鹿蜀", "狌狌", "羬羊", "虎蛟", "瞿如", "猾褢", "蛊雕", "狸力", "赤鱬", "灌灌", "猼訑", "盘古斧", "旋龟", "鸾鸟",
-            "溪边", "文鳐", "白雉", "梼杌", "天之痕", "轩辕剑", "神农鼎", "炼妖壶", "昆仑镜", "崆峒", "乾坤鼎", "西王母", "洪荒", "盘古幡", "诛仙剑阵"
-    ));
-
     //    需要删除的符号
-    private List<String> deleStr = new ArrayList<>(Arrays.asList(
-            "", "(", ",", "“", "”", ")", "()"
+    private ArrayList deleStr = new ArrayList<>(Arrays.asList(
+            "", "(", ",", "“", "”", ")", "()", "（", "），", "，", "\"", "。", "、", "："
     ));
 
 
     /**
-     * 文本中的实体 LaTeX 化，
+     * 文本中的实体 LaTeX 化，暴露接口给外界访问的入口
      *
      * @param str 待处理的文本
      * @return 返回处理后的文本
      */
-    private String getPattern(String str) {
+    public String getPattern(String str) {
         // 每次处理一个新的文本都需要将 map 集合里的数据清空
         keymap.clear();
         replaceMap.clear();
@@ -62,8 +57,15 @@ public class LatexConvert {
             dealStr(string);
         }
 
-        // 将已经使用的字符移除掉
-        List<String> stringList = replaceLatex;
+        // LaTeX 用下面的词进行替换，最后再转换
+        List<String> stringList = new ArrayList<>(Arrays.asList(
+                "魑魅", "魍魉", "狰讙", "驳鯥", "蠃鱼", "孰湖", "穷奇", "伏羲琴", "冉遗鱼", "鵸鵌", "东皇钟", "昊天塔", "异兽狡", "玃如", "毕方",
+                "豪彘", "鹿蜀", "狌狌", "羬羊", "虎蛟", "瞿如", "猾褢", "蛊雕", "狸力", "赤鱬", "灌灌", "猼訑", "盘古斧", "旋龟", "鸾鸟",
+                "溪边", "文鳐", "白雉", "梼杌", "天之痕", "轩辕剑", "神农鼎", "炼妖壶", "昆仑镜", "崆峒", "乾坤鼎", "西王母", "洪荒", "盘古幡", "诛仙剑阵",
+                "貝筆", "罷備", "畢邊", "參倉", "産長", "芻從", "達帶", "動斷", "樂離", "劉龍", "婁盧", "馬買", "門黽", "難鳥", "聶寜",
+                "齊豈", "氣遷", "僉喬", "親窮", "嗇殺", "審聖", "師時", "夀屬", "雙肅", "嵗孫", "萬為", "韋烏", "獻鄉", "寫尋", "亞嚴",
+                "厭堯", "業頁", "義兿", "陰隱", "猶魚", "與雲", "鄭執", "質專", "標錶", "彆蔔", "擔膽", "導燈", "鄧敵", "糴遞", "點澱"
+        ));
 
         // 步骤4.按照文本中的实体，替换首次匹配到的实体
         for (Map<String, String> entity : keymap) {
@@ -119,13 +121,14 @@ public class LatexConvert {
 
 
     /**
-     * 判断字符串是否只包含数字，如果是数字就不需要进行$ 包裹
+     * 判断该字符串是否只包含数字或者是坐标形式（比如A（2,3))，如果是数字就不需要进行$ 包裹
+     * 如果不包含数字就返回真，
      *
      * @param str 待匹配的字符串
      * @return 返回匹配的结果
      */
     private boolean patternNum(String str) {
-        String regex = "[-0-9_]+";
+        String regex = "[^-0-9_°]+|[A-z]?\\([A-z0-9∞]+.*?\\)";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(str);
         return matcher.find();
@@ -142,7 +145,8 @@ public class LatexConvert {
      */
     private void dealStr(String string) {
         // 如果是坐标的话就按照坐标进行切分，否则就按照逗号或者顿号进行切割
-        String[] old = string.split("[A-z]+\\([A-z0-9],[A-z0-9]\\)|、|,|，");
+        // ，|[A-z]?\([A-z0-9∞]+.*?\)|、|,
+        String[] old = string.split("[，、。；：]");
         if (old.length > 1) {
             for (String str : old) {
                 // 去掉字符串的前后空格的影响
@@ -150,7 +154,7 @@ public class LatexConvert {
                 // 递归调用进行 实体LaTeX化
                 dealStr(str);
             }
-        } else if (!old[0].equals("")) {
+        } else if (!old.equals("") && old.length != 0) {
             String replaceStr = newStrReplace(old[0]);
             Map<String, String> keyValue = new HashMap<>();
             keyValue.put(old[0], replaceStr);
@@ -172,22 +176,11 @@ public class LatexConvert {
                 str = "$" + str + "$";
             } else if (str.contains("△") || str.contains("∥") || str.contains("⊥") || str.contains("∠")) {
                 str = str.replaceAll("([A-z']+)", "\\$$1\\$");
-            } else if (!patternNum(str)) {
+            } else if (patternNum(str)) {
                 str = "$" + str + "$";
             }
         }
         return str;
     }
-
-    public static void main(String[] args) {
-
-        LatexConvert latexConvert = new LatexConvert();
-        String str = "△MNP中,∠P=60°,MN=NP,MQ⊥PN,垂足为Q,延长MN至G,使NG=NQ,若△MNP的周长为12,MQ=a,则△MGQ的周长是";
-        System.out.println("原字符串：" + str);
-        System.out.println(latexConvert.getPattern(str));
-
-
-    }
-
 
 }
