@@ -25,7 +25,7 @@ public class LatexConvert {
     private static Random random = new Random();
 
     //    匹配中文字符
-    private static final String ChinanesStr = "[\\u4e00-\\u9fa5_]+:?";
+    private static final String ChinanesStr = "[\\u4e00-\\u9fa5]+:?";
 
 
     //    需要删除的符号
@@ -42,6 +42,9 @@ public class LatexConvert {
      */
     public String getPattern(String str) {
         // 每次处理一个新的文本都需要将 map 集合里的数据清空
+        if (str.contains("<QuestionBegin>") || str.contains("<QuestionEnd>") || str.contains("$") || str.contains("【")) {
+            return str;
+        }
         keymap.clear();
         replaceMap.clear();
         //  步骤1. 按照中文进行切分
@@ -128,7 +131,7 @@ public class LatexConvert {
      * @return 返回匹配的结果
      */
     private boolean patternNum(String str) {
-        String regex = "[^-0-9_°]+|[A-z]?\\([A-z0-9∞]+.*?\\)";
+        String regex = "[^-0-9_()]+|[A-z]+_[0-9]+|[A-z]?\\([A-z0-9∞]+.*?\\)|[0-9]+";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(str);
         return matcher.find();
@@ -175,7 +178,11 @@ public class LatexConvert {
             if (str.contains("=")) {
                 str = "$" + str + "$";
             } else if (str.contains("△") || str.contains("∥") || str.contains("⊥") || str.contains("∠")) {
-                str = str.replaceAll("([A-z']+)", "\\$$1\\$");
+                if (str.contains("cos") || str.contains("tan") || str.contains("sin")) {
+                    str = "$" + str + "$";
+                } else {
+                    str = str.replaceAll("([A-Q'a-q]+)", "\\$$1\\$");
+                }
             } else if (patternNum(str)) {
                 str = "$" + str + "$";
             }
