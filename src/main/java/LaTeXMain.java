@@ -18,14 +18,9 @@ public class LaTeXMain {
         List<String> question;
         question = textReader.ReadLines();
         textReader.Close();
-
         TextWriter textWriter = new TextWriter("result.txt", false);
-
         for (String str : question) {
-
             textWriter.writeLines(latexConvert.getPattern(str));
-
-
         }
 
         textWriter.close();

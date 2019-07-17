@@ -21,7 +21,7 @@ public class LatexServer {
         boolean flag  = true;
         while (flag){
             client = serverSocket.accept();
-            System.out.println("与客户端连接成功！");
+            System.out.println("与"+client.getRemoteSocketAddress()+"客户端连接成功！");
             new Thread(new ServerThread(client)).start();
         }
         serverSocket.close();

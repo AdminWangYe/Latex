@@ -190,4 +190,9 @@ public class LatexConvert {
         return str;
     }
 
+    public void LatexByfile(String origin,String result){
+
+    }
+
+
 }

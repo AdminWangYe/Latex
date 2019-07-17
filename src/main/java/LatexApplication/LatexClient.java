@@ -1,11 +1,15 @@
 package LatexApplication;
 
+import utils.TextReader;
+import utils.TextWriter;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
+import java.util.List;
 
 /**
  * @author: yyWang
@@ -14,9 +18,34 @@ import java.net.SocketTimeoutException;
  */
 
 public class LatexClient {
-    public static void main(String[] args) throws IOException {
-        Socket client = new Socket("127.0.0.1", 9994);
-//        client.setSoTimeout(30000);
+
+    private String host = "127.0.0.1";
+    private int port = 9994;
+    private List<String> question;
+    private String orgin;
+    private String result;
+    private TextWriter textWriter;
+
+    public LatexClient(String orgin, String result) {
+        this.orgin = orgin;
+        this.result = result;
+        initialise();
+    }
+
+
+    private void initialise() {
+        TextReader textReader = new TextReader(orgin);
+        question = textReader.ReadLines();
+        textReader.Close();
+        textWriter = new TextWriter(result, false);
+
+    }
+
+    public LatexClient() {
+    }
+
+    public void client() throws IOException {
+        Socket client = new Socket(host, port);
         // 获取键盘输入
         BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
         // 获取Socket的输出流，用来发送数据到服务端
@@ -25,20 +54,27 @@ public class LatexClient {
         BufferedReader buf = new BufferedReader(new InputStreamReader(client.getInputStream()));
         boolean flag = true;
         while (flag) {
-            System.out.print("输入信息：");
+            System.out.print("输入(1开始，bye退出)：");
             String str = input.readLine();
             // 发送数据到服务端
             out.println(str);
             if ("bye".equals(str)) {
                 flag = false;
             } else {
-                try {
-                    // 从服务器端接收数据有个时间限制（系统自设，也可以自己设置client.setSoTimeout(10000);），超过了这个时间，便会抛出该异常
-                    String echo = buf.readLine();
-                    System.out.println(echo);
-                } catch (SocketTimeoutException e) {
-                    System.out.println("Time out, No response");
+                for (String string : question) {
+
+                    try {
+                        // 从服务器端接收数据有个时间限制（系统自设，也可以自己设置client.setSoTimeout(10000);），超过了这个时间，便会抛出该异常
+                        out.println(string);
+                        String echo = buf.readLine();
+//                        System.out.println(echo);
+                        textWriter.writeLines(echo.replaceAll("Server回复:",""));
+                    } catch (SocketTimeoutException e) {
+                        System.out.println("Time out, No response");
+                    }
                 }
+                System.out.println("实体LaTeX化完成。。。");
+
             }
         }
         input.close();
@@ -47,6 +83,12 @@ public class LatexClient {
             client.close(); // 只关闭socket，其关联的输入输出流也会被关闭
         }
 
-
     }
+
+    public static void main(String[] args) throws IOException {
+        LatexClient client = new LatexClient("relation_500.txt", "relation.txt");
+        client.client();
+    }
+
+
 }
