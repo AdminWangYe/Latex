@@ -14,16 +14,20 @@ import java.util.List;
 /**
  * @author: yyWang
  * @create: 2019/7/16
- * @description: 客户端类
+ * @description: 客户端类，实体LaTeX化封装
  */
 
 public class LatexClient {
 
     private String host = "127.0.0.1";
     private int port = 9994;
+    // 从文件里读取要LaTeX的文本
     private List<String> question;
+    // 需要转换的文件名
     private String orgin;
+    // 转换的结果
     private String result;
+    // 向文件TXT写入数据
     private TextWriter textWriter;
 
     public LatexClient(String orgin, String result) {
@@ -33,6 +37,9 @@ public class LatexClient {
     }
 
 
+    /**
+     *  数据初始化，将数据读入到 list集合中，为实体 LaTeX 化做准备
+     */
     private void initialise() {
         TextReader textReader = new TextReader(orgin);
         question = textReader.ReadLines();
@@ -44,6 +51,10 @@ public class LatexClient {
     public LatexClient() {
     }
 
+    /**
+     * 客户端函数，
+     * @throws IOException
+     */
     public void client() throws IOException {
         Socket client = new Socket(host, port);
         // 获取键盘输入
@@ -68,7 +79,7 @@ public class LatexClient {
                         out.println(string);
                         String echo = buf.readLine();
 //                        System.out.println(echo);
-                        textWriter.writeLines(echo.replaceAll("Server回复:",""));
+                        textWriter.writeLines(echo.replaceAll("Server回复:", ""));
                     } catch (SocketTimeoutException e) {
                         System.out.println("Time out, No response");
                     }
