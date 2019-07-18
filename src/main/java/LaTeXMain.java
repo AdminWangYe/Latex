@@ -13,7 +13,7 @@ import java.util.List;
 public class LaTeXMain {
     public static void main(String[] args) {
         LatexConvert latexConvert = new LatexConvert();
-        TextReader textReader = new TextReader("relation_500.txt");
+        TextReader textReader = new TextReader("questionresult.txt");
         // 保存读取的题目内容
         List<String> question;
         question = textReader.ReadLines();
@@ -24,6 +24,7 @@ public class LaTeXMain {
         }
 
         textWriter.close();
+        System.out.println("转换结束。。");
 
 
     }

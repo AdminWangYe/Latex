@@ -42,7 +42,7 @@ public class LatexConvert {
      */
     public String getPattern(String str) {
         // 每次处理一个新的文本都需要将 map 集合里的数据清空
-        if (str.contains("<QuestionBegin>") || str.contains("<QuestionEnd>") || str.contains("$") || str.contains("【")) {
+        if (str.contains("<QuestionBegin>") || str.contains("<QuestionEnd>")) {
             return str;
         }
         keymap.clear();
@@ -67,7 +67,11 @@ public class LatexConvert {
                 "溪边", "文鳐", "白雉", "梼杌", "天之痕", "轩辕剑", "神农鼎", "炼妖壶", "昆仑镜", "崆峒", "乾坤鼎", "西王母", "洪荒", "盘古幡", "诛仙剑阵",
                 "貝筆", "罷備", "畢邊", "參倉", "産長", "芻從", "達帶", "動斷", "樂離", "劉龍", "婁盧", "馬買", "門黽", "難鳥", "聶寜",
                 "齊豈", "氣遷", "僉喬", "親窮", "嗇殺", "審聖", "師時", "夀屬", "雙肅", "嵗孫", "萬為", "韋烏", "獻鄉", "寫尋", "亞嚴",
-                "厭堯", "業頁", "義兿", "陰隱", "猶魚", "與雲", "鄭執", "質專", "標錶", "彆蔔", "擔膽", "導燈", "鄧敵", "糴遞", "點澱"
+                "厭堯", "業頁", "義兿", "陰隱", "猶魚", "與雲", "鄭執", "質專", "標錶", "彆蔔", "擔膽", "導燈", "鄧敵", "糴遞", "點澱",
+                "塵襯", "稱懲", "遲衝", "懺償", "廠徹", "攙讒", "蠶燦", "礎處", "觸辭", "聰叢", "鬥獨", "噸奪", "電鼕", "礬範", "飛墳",
+                "鳳膚", "婦復", "蓋乾", "趕個", "鞏溝", "構購", "榖顧", "颳關", "觀櫃", "漢號", "閤轟", "後鬍", "壺滬", "護劃", "懷壞"
+
+
         ));
 
         // 步骤4.按照文本中的实体，替换首次匹配到的实体
@@ -190,7 +194,7 @@ public class LatexConvert {
         return str;
     }
 
-    public void LatexByfile(String origin,String result){
+    public void LatexByfile(String origin, String result) {
 
     }
 
